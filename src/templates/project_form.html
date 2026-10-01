@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}{{ _('Editar projeto') if project else _('Criar projeto') }} · gmxflow{% endblock %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-3">{{ _('Editar projeto') if project else _('Criar projeto') }}</h1>
+<p class="text-slate-600 mb-6">{{ _('Envie os arquivos de entrada e ajuste os parâmetros. Os demais campos vêm preenchidos com os padrões do gmxflow.') }}</p>
+{% if validation_error %}<pre class="bg-red-50 p-4 overflow-auto mb-5">{{ validation_error }}</pre>{% endif %}
+<form method="post" enctype="multipart/form-data" class="space-y-6">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {% for section, title, entries in groups %}
+  <details class="bg-white p-5 rounded-xl shadow" {% if loop.first or loop.index == 2 %}open{% endif %}>
+    <summary class="font-bold text-xl cursor-pointer">{{ title }}</summary>
+    {% if section == 'input' %}
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      {% for alias, spec in uploads.items() %}
+      <label class="block">{{ spec.label }}
+        <input type="file" name="{{ alias }}" accept="{{ spec.extension }}" {% if alias in ('receptor', 'ligand') and not uploaded_names.get(alias) %}required{% endif %} {% if alias in ('mol2', 'str') %}data-required-for-small-molecule="{{ 'false' if uploaded_names.get(alias) else 'true' }}"{% endif %} class="block w-full border rounded p-2">
+        {% if uploaded_names.get(alias) %}<small class="block text-slate-500">{{ _('Arquivo atual:') }} {{ uploaded_names[alias] }}</small>{% endif %}
+      </label>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <div class="grid md:grid-cols-2 gap-4 mt-4">
+      {% for field in entries %}
+      <label class="block">{{ field.label }}
+        {% if field.type == 'bool' %}
+          <input type="checkbox" name="{{ field.name }}" {% if field.value %}checked{% endif %} class="ml-2">
+        {% elif field.choices %}
+          <select name="{{ field.name }}" class="w-full border rounded p-2">
+            {% for choice in field.choices %}<option value="{{ choice }}" {% if field.value == choice %}selected{% endif %}>{{ choice }}</option>{% endfor %}
+          </select>
+        {% else %}
+          <input name="{{ field.name }}" type="{{ 'number' if field.type == 'number' else 'text' }}" step="{{ field.step }}" value="{{ field.value | join(', ') if field.type == 'list' else field.value }}" class="w-full border rounded p-2">
+        {% endif %}
+        {% if field.help %}<small class="block text-slate-500">{{ field.help }}</small>{% endif %}
+      </label>
+      {% endfor %}
+    </div>
+  </details>
+  {% endfor %}
+  <button class="bg-blue-700 text-white px-5 py-3 rounded">{{ _('Salvar e validar') }}</button>
+</form>
+<script>
+  const ligandKind = document.querySelector('select[name="input.ligand_kind"]');
+  function updateRequiredUploads() {
+    document.querySelectorAll('[data-required-for-small-molecule]').forEach(input => {
+      input.required = ligandKind.value === 'small_molecule' && input.dataset.requiredForSmallMolecule === 'true';
+    });
+  }
+  ligandKind.addEventListener('change', updateRequiredUploads);
+  updateRequiredUploads();
+</script>
+{% endblock %}

@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="{{ 'en' if get_locale().language == 'en' else 'pt-BR' }}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}gmxflow web{% endblock %}</title>
+<script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+<nav class="bg-slate-900 text-white px-6 py-4 flex gap-6 items-center"><a href="{{ url_for('index') }}" class="font-bold text-xl">gmxflow</a>
+{% if g.user %}<a href="{{ url_for('projects.list_projects') }}">{{ _('Projetos') }}</a><a href="{{ url_for('auth.profile') }}">{{ _('Perfil') }}</a><span class="ml-auto">{{ g.user.first_name }}</span><form action="{{ url_for('auth.logout') }}" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button>{{ _('Sair') }}</button></form>{% endif %}<a class="ml-3" href="{{ request.path }}?lang=pt_BR" lang="pt-BR">PT</a><a href="{{ request.path }}?lang=en" lang="en">EN</a></nav>
+<main class="max-w-5xl mx-auto px-4 py-8">
+{% for category, message in get_flashed_messages(with_categories=true) %}<div class="mb-4 p-3 rounded {{ 'bg-red-100 text-red-900' if category == 'error' else 'bg-green-100 text-green-900' }}">{{ message }}</div>{% endfor %}
+{% block content %}{% endblock %}</main></body></html>

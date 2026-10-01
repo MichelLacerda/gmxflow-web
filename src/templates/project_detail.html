@@ -1,0 +1,6 @@
+{% extends 'base.html' %}{% block title %}{{ project.name }} · gmxflow{% endblock %}{% block content %}
+<div class="flex justify-between items-center"><h1 class="text-3xl font-bold">{{ project.name }}</h1><span class="bg-slate-200 rounded px-3 py-1">{{ status_label(project.status) }}</span></div>
+{% if project.error %}<div class="bg-red-50 text-red-900 p-4 rounded mt-5">{{ project.error }}</div>{% endif %}
+<div class="flex gap-3 mt-6"><a class="border rounded px-4 py-2" href="{{ url_for('projects.edit', project_id=project.id) }}">{{ _('Editar') }}</a>
+{% if project.status not in ('queued','running') %}<form method="post" action="{{ url_for('projects.queue', project_id=project.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="bg-blue-700 text-white rounded px-4 py-2">{{ _('Voltar ao topo da fila') if project.status == 'failed' or project.queue_priority else _('Colocar na fila') }}</button></form>{% endif %}</div>
+<h2 class="text-xl font-bold mt-8 mb-3">{{ _('Logs') }}</h2>{% if logs %}<ul class="space-y-2">{% for path in logs %}<li><a class="text-blue-700 underline" href="{{ url_for('projects.log', project_id=project.id, name=path.name) }}">{{ path.name }}</a></li>{% endfor %}</ul>{% else %}<p>{{ _('Nenhum log disponível.') }}</p>{% endif %}{% endblock %}

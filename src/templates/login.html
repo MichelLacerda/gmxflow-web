@@ -1,0 +1,7 @@
+{% extends 'base.html' %}{% block title %}{{ _('Entrar') }} · gmxflow{% endblock %}{% block content %}
+<div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow"><h1 class="text-2xl font-bold mb-6">{{ _('Entrar') }}</h1>
+<form method="post" class="space-y-4"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<label class="block">{{ _('E-mail') }}<input type="email" name="email" required class="w-full border rounded p-2"></label>
+<label class="block">{{ _('Senha') }}<input type="password" name="password" required class="w-full border rounded p-2"></label>
+<button class="bg-blue-700 text-white px-4 py-2 rounded">{{ _('Entrar') }}</button></form>
+<p class="mt-5">{{ _('Novo por aqui?') }} <a class="text-blue-700 underline" href="{{ url_for('auth.register') }}">{{ _('Criar conta') }}</a></p></div>{% endblock %}

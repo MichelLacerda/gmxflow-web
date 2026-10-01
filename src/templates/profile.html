@@ -1,0 +1,5 @@
+{% extends 'base.html' %}{% block title %}{{ _('Perfil') }} · gmxflow{% endblock %}{% block content %}
+<div class="max-w-xl bg-white p-8 rounded-xl shadow"><h1 class="text-2xl font-bold mb-6">{{ _('Editar perfil') }}</h1><p class="mb-4 text-slate-600">{{ g.user.email }}</p><form method="post" class="grid gap-4"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{% for key, label in [('first_name',_('Nome')),('last_name',_('Sobrenome')),('entity',_('Entidade')),('course',_('Curso')),('research_area',_('Área de pesquisa'))] %}
+<label>{{ label }}<input name="{{ key }}" value="{{ g.user|attr(key) }}" {% if key in ('first_name','last_name') %}required{% endif %} class="w-full border rounded p-2"></label>{% endfor %}
+<label>{{ _('Nova senha (opcional)') }}<input name="password" type="password" class="w-full border rounded p-2"></label><button class="bg-blue-700 text-white px-4 py-2 rounded">{{ _('Salvar') }}</button></form></div>{% endblock %}

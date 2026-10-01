@@ -1,0 +1,40 @@
+[project]
+name = "gmxflow-web"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.1,<4",
+    "peewee>=3.17,<4",
+    "gmxflow",
+    "flask-babel>=4,<5",
+]
+
+[tool.uv.sources]
+gmxflow = { path = "../gmxflow" }
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.400",
+    "pytest>=8",
+    "ruff>=0.16.9",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+include = ["*.py", "*.pyi", "pyproject.toml"]
+extend-exclude = ["gmxflow", "translations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "PLW"]
+
+[tool.pyright]
+include = ["gmxflow_web", "tests"]
+exclude = ["gmxflow", ".venv"]
+venvPath = "."
+venv = ".venv"
+pythonVersion = "3.12"
+typeCheckingMode = "standard"

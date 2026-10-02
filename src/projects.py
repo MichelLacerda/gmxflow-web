@@ -2,7 +2,9 @@ import os
 import subprocess
 import uuid
 from pathlib import Path
+from tempfile import TemporaryFile
 from typing import cast
+from zipfile import ZIP_DEFLATED, ZipFile
 
 from flask import (
     Blueprint,
@@ -13,6 +15,7 @@ from flask import (
     redirect,
     render_template,
     request,
+    send_file,
     url_for,
 )
 from flask_babel import gettext as _
@@ -70,7 +73,56 @@ def list_projects():
         .where(Project.owner == g.user)
         .order_by(cast(DateTimeField, Project.created_at).desc())
     )
-    return render_template("projects.html", projects=projects)
+    projects = list(projects)
+    downloadable_ids = {
+        project.id for project in projects if outputs_dir(project) is not None
+    }
+    return render_template(
+        "projects.html",
+        projects=projects,
+        downloadable_ids=downloadable_ids,
+    )
+
+
+def outputs_dir(project):
+    directory = project_dir(current_app.config["PROJECT_ROOT"], project) / "outputs"
+    return directory if directory.is_dir() and not directory.is_symlink() else None
+
+
+@bp.get("/<project_id>/outputs.zip")
+@login_required
+def download_outputs(project_id):
+    project = owned(project_id)
+    directory = outputs_dir(project)
+    if directory is None:
+        abort(404)
+    archive = TemporaryFile(mode="w+b")
+    try:
+        with ZipFile(archive, "w", compression=ZIP_DEFLATED) as zip_file:
+            zip_file.writestr("outputs/", b"")
+            for root_name, directories, files in os.walk(directory, followlinks=False):
+                root = Path(root_name)
+                directories[:] = [
+                    name for name in directories if not (root / name).is_symlink()
+                ]
+                for name in directories + files:
+                    path = root / name
+                    if not path.is_symlink() and (path.is_dir() or path.is_file()):
+                        zip_file.write(path, path.relative_to(directory.parent))
+        size = archive.tell()
+        archive.seek(0)
+        response = send_file(
+            archive,
+            mimetype="application/zip",
+            as_attachment=True,
+            download_name=f"{project.id}-outputs.zip",
+        )
+        response.content_length = size
+        response.headers["Cache-Control"] = "private, no-store"
+        return response
+    except BaseException:
+        archive.close()
+        raise
 
 
 @bp.route("/new", methods=["GET", "POST"])
@@ -229,7 +281,12 @@ def detail(project_id):
         if (directory / "work" / "logs").exists()
         else []
     )
-    return render_template("project_detail.html", project=project, logs=logs)
+    return render_template(
+        "project_detail.html",
+        project=project,
+        logs=logs,
+        has_outputs=outputs_dir(project) is not None,
+    )
 
 
 @bp.post("/<project_id>/queue")

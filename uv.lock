@@ -237,7 +237,7 @@ wheels = [
 [[package]]
 name = "gmxflow"
 version = "0.1.0"
-source = { directory = "../gmxflow" }
+source = { git = "https://github.com/MichelLacerda/gmxflow.git#3c796ce0485fae735d223f753f2a6d9376c76b86" }
 dependencies = [
     { name = "jinja2" },
     { name = "matplotlib" },
@@ -246,24 +246,6 @@ dependencies = [
     { name = "pydantic" },
     { name = "rich" },
     { name = "typer" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "matplotlib", specifier = ">=3.10.9" },
-    { name = "networkx", specifier = ">=3.6.1" },
-    { name = "numpy", specifier = ">=2.4.6" },
-    { name = "pydantic", specifier = ">=2.13.4" },
-    { name = "rich", specifier = ">=15.0.0" },
-    { name = "typer", specifier = ">=0.25.1" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mypy", specifier = ">=2.1.0" },
-    { name = "pytest", specifier = ">=9.0.3" },
-    { name = "ruff", specifier = ">=0.15.14" },
 ]
 
 [[package]]
@@ -288,7 +270,7 @@ dev = [
 requires-dist = [
     { name = "flask", specifier = ">=3.1,<4" },
     { name = "flask-babel", specifier = ">=4,<5" },
-    { name = "gmxflow", directory = "../gmxflow" },
+    { name = "gmxflow", git = "https://github.com/MichelLacerda/gmxflow.git" },
     { name = "peewee", specifier = ">=3.17,<4" },
 ]
 

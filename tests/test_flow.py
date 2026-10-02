@@ -217,3 +217,102 @@ def test_required_inputs_for_create_and_edit(tmp_path):
     assert "Envie o arquivo obrigatório: Ligante PDB." in response.get_data(
         as_text=True
     )
+
+
+def test_outputs_zip_download_is_complete_and_private(tmp_path):
+    from zipfile import ZipFile
+
+    from src.configuration import project_dir
+    from src.models import User
+
+    app = create_app(
+        {
+            "TESTING": True,
+            "SECRET_KEY": "test",
+            "DATABASE": str(tmp_path / "db.sqlite"),
+            "PROJECT_ROOT": str(tmp_path / "projects"),
+        }
+    )
+    client = app.test_client()
+    register(client, "outputs@example.com")
+    with app.app_context():
+        project = Project.create(
+            owner=User.get(User.email == "outputs@example.com"),
+            name="Results",
+            config_json=GmxFlowConfig().model_dump_json(),
+        )
+        directory = project_dir(app.config["PROJECT_ROOT"], project)
+    url = f"/projects/{project.id}/outputs.zip"
+    assert client.get(url).status_code == 404
+    assert url not in client.get("/projects").get_data(as_text=True)
+    outputs = directory / "outputs"
+    (outputs / "nested" / "empty").mkdir(parents=True)
+    (outputs / "report.html").write_text("<h1>Results</h1>")
+    (outputs / "nested" / "data.bin").write_bytes(b"\x00\xff\x01")
+    secret = tmp_path / "secret.txt"
+    secret.write_text("private")
+    (outputs / "secret.txt").symlink_to(secret)
+    (outputs / "external").symlink_to(tmp_path, target_is_directory=True)
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.mimetype == "application/zip"
+    assert f"{project.id}-outputs.zip" in response.headers["Content-Disposition"]
+    assert response.headers["Cache-Control"] == "private, no-store"
+    with ZipFile(io.BytesIO(response.data)) as archive:
+        assert set(archive.namelist()) == {
+            "outputs/",
+            "outputs/report.html",
+            "outputs/nested/",
+            "outputs/nested/data.bin",
+            "outputs/nested/empty/",
+        }
+        assert archive.read("outputs/nested/data.bin") == b"\x00\xff\x01"
+        assert archive.read("outputs/report.html") == b"<h1>Results</h1>"
+    response.close()
+    assert url in client.get("/projects").get_data(as_text=True)
+    assert url in client.get(f"/projects/{project.id}").get_data(as_text=True)
+    assert "Download reports (ZIP)" in client.get("/projects?lang=en").get_data(
+        as_text=True
+    )
+    second = app.test_client()
+    register(second, "other@example.com")
+    assert second.get(url).status_code == 404
+    assert app.test_client().get(url).status_code == 302
+    assert client.get("/projects/invalid/outputs.zip").status_code == 404
+
+
+def test_outputs_zip_rejects_symlink_root_and_supports_empty_folder(tmp_path):
+    from zipfile import ZipFile
+
+    from src.configuration import project_dir
+    from src.models import User
+
+    app = create_app(
+        {
+            "TESTING": True,
+            "SECRET_KEY": "test",
+            "DATABASE": str(tmp_path / "db.sqlite"),
+            "PROJECT_ROOT": str(tmp_path / "projects"),
+        }
+    )
+    client = app.test_client()
+    register(client, "empty@example.com")
+    with app.app_context():
+        project = Project.create(
+            owner=User.get(User.email == "empty@example.com"),
+            name="Empty",
+            config_json=GmxFlowConfig().model_dump_json(),
+        )
+        directory = project_dir(app.config["PROJECT_ROOT"], project)
+    directory.mkdir(parents=True)
+    outputs = directory / "outputs"
+    outputs.symlink_to(tmp_path, target_is_directory=True)
+    url = f"/projects/{project.id}/outputs.zip"
+    assert client.get(url).status_code == 404
+    assert url not in client.get("/projects").get_data(as_text=True)
+    outputs.unlink()
+    outputs.mkdir()
+    response = client.get(url)
+    with ZipFile(io.BytesIO(response.data)) as archive:
+        assert archive.namelist() == ["outputs/"]
+    response.close()

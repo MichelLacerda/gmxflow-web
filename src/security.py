@@ -12,7 +12,10 @@ def csrf_token():
 
 
 def check_csrf():
-    if request.method == "POST" and not hmac.compare_digest(
-        request.form.get("csrf_token", ""), session.get("csrf_token", "")
+    if request.method == "POST" and (
+        not session.get("csrf_token")
+        or not hmac.compare_digest(
+            request.form.get("csrf_token", ""), session.get("csrf_token", "")
+        )
     ):
         abort(400, _("Token do formulário inválido."))

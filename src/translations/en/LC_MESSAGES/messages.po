@@ -512,3 +512,19 @@ msgstr "Password (at least 12 characters)"
 msgid "Cadastrar"
 msgstr "Sign up"
 
+
+msgid "Limpar projeto"
+msgstr "Clean project"
+
+msgid "Remove arquivos regeneráveis de work e preserva entradas e resultados."
+msgstr "Remove regenerable work files and preserve inputs and results."
+
+msgid "Aguarde o fim da execução para limpar o projeto."
+msgstr "Wait for the run to finish before cleaning the project."
+
+#, python-format
+msgid "Falha ao limpar o projeto: %(error)s"
+msgstr "Failed to clean the project: %(error)s"
+
+msgid "Projeto limpo com sucesso."
+msgstr "Project cleaned successfully."

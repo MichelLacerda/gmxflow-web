@@ -9,7 +9,7 @@ endblock %}{% block content %}
 {% if project.error %}
 <div class="bg-red-50 text-red-900 p-4 rounded mt-5">{{ project.error }}</div>
 {% endif %}
-<div class="flex gap-3 mt-6">
+<div class="flex flex-wrap gap-3 mt-6">
     <a
         class="border rounded px-4 py-2"
         href="{{ url_for('projects.edit', project_id=project.id) }}"
@@ -27,6 +27,12 @@ endblock %}{% block content %}
         /><button class="bg-blue-700 text-white rounded px-4 py-2">
             {{ _('Voltar ao topo da fila') if project.status == 'failed' or
             project.queue_priority else _('Colocar na fila') }}
+        </button>
+    </form>
+    <form method="post" action="{{ url_for('projects.clean', project_id=project.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <button class="border border-red-700 text-red-700 rounded px-4 py-2" title="{{ _('Remove arquivos regeneráveis de work e preserva entradas e resultados.') }}">
+            {{ _('Limpar projeto') }}
         </button>
     </form>
     {% endif %}

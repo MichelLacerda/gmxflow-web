@@ -25,7 +25,7 @@ from pydantic import ValidationError
 
 from .auth import login_required
 from .configuration import UPLOADS, fields, from_form, project_dir, to_toml
-from .models import Project, now
+from .models import Project, database, now
 
 bp = Blueprint("projects", __name__, url_prefix="/projects")
 
@@ -287,6 +287,49 @@ def detail(project_id):
         logs=logs,
         has_outputs=outputs_dir(project) is not None,
     )
+
+
+@bp.post("/<project_id>/clean")
+@login_required
+def clean(project_id):
+    # Serialize cleanup with queue requests and the worker claiming a project.
+    with database.atomic("IMMEDIATE"):
+        project = owned(project_id)
+        if project.status in ("queued", "running"):
+            flash(_("Aguarde o fim da execução para limpar o projeto."), "error")
+        else:
+            directory = project_dir(current_app.config["PROJECT_ROOT"], project)
+            try:
+                result = subprocess.run(
+                    ["gmxflow", "clean", "--config", str(directory / "config.toml")],
+                    cwd=directory,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=60,
+                )
+            except (OSError, subprocess.SubprocessError) as exc:
+                flash(_("Falha ao limpar o projeto: %(error)s", error=exc), "error")
+            else:
+                if result.returncode != 0:
+                    flash(
+                        _(
+                            "Falha ao limpar o projeto: %(error)s",
+                            error=(result.stdout + result.stderr)[-8000:],
+                        ),
+                        "error",
+                    )
+                else:
+                    project.status = "draft"
+                    project.error = ""
+                    project.queue_priority = 0
+                    project.queued_at = None
+                    project.started_at = None
+                    project.finished_at = None
+                    project.updated_at = now()
+                    project.save()
+                    flash(_("Projeto limpo com sucesso."), "success")
+    return redirect(url_for("projects.detail", project_id=project_id))
 
 
 @bp.post("/<project_id>/queue")

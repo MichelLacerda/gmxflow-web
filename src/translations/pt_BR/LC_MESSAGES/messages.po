@@ -506,3 +506,19 @@ msgstr ""
 msgid "Cadastrar"
 msgstr ""
 
+
+msgid "Limpar projeto"
+msgstr "Limpar projeto"
+
+msgid "Remove arquivos regeneráveis de work e preserva entradas e resultados."
+msgstr "Remove arquivos regeneráveis de work e preserva entradas e resultados."
+
+msgid "Aguarde o fim da execução para limpar o projeto."
+msgstr "Aguarde o fim da execução para limpar o projeto."
+
+#, python-format
+msgid "Falha ao limpar o projeto: %(error)s"
+msgstr "Falha ao limpar o projeto: %(error)s"
+
+msgid "Projeto limpo com sucesso."
+msgstr "Projeto limpo com sucesso."

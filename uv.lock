@@ -237,7 +237,7 @@ wheels = [
 [[package]]
 name = "gmxflow"
 version = "0.1.0"
-source = { git = "https://github.com/MichelLacerda/gmxflow.git#3c796ce0485fae735d223f753f2a6d9376c76b86" }
+source = { git = "https://github.com/MichelLacerda/gmxflow?branch=main#3c796ce0485fae735d223f753f2a6d9376c76b86" }
 dependencies = [
     { name = "jinja2" },
     { name = "matplotlib" },
@@ -270,7 +270,7 @@ dev = [
 requires-dist = [
     { name = "flask", specifier = ">=3.1,<4" },
     { name = "flask-babel", specifier = ">=4,<5" },
-    { name = "gmxflow", git = "https://github.com/MichelLacerda/gmxflow.git" },
+    { name = "gmxflow", git = "https://github.com/MichelLacerda/gmxflow?branch=main" },
     { name = "peewee", specifier = ">=3.17,<4" },
 ]
 

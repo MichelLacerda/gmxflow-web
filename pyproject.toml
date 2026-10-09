@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-gmxflow = { git = "https://github.com/MichelLacerda/gmxflow.git" }
+gmxflow = { git = "https://github.com/MichelLacerda/gmxflow", branch = "main" }
 
 [dependency-groups]
 dev = [
